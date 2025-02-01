@@ -1,6 +1,7 @@
 package main
 
 import (
+	"organization-service/controllers"
 	"organization-service/database"
 
 	"github.com/gin-gonic/gin"
@@ -9,10 +10,15 @@ import (
 func main() {
 	database.ConnectDatabase()
 	r := gin.Default()
-	r.GET("/ping", func(c *gin.Context) {
-		c.JSON(200, gin.H{
-			"message": "pong",
-		})
-	})
+
+	orgRoutes := r.Group("/organizations")
+	{
+		orgRoutes.POST("/", controllers.CreateOrganization)
+		orgRoutes.GET("/", controllers.GetOrganizations)
+		orgRoutes.GET("/:id", controllers.GetOrganizationByID)
+		orgRoutes.PUT("/:id", controllers.UpdateOrganization)
+		orgRoutes.DELETE("/:id", controllers.DeleteOrganization)
+	}
+
 	r.Run(":8081")
 }
