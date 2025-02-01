@@ -4,6 +4,8 @@ import (
 	"log"
 	"os"
 
+	"organization-service/models"
+
 	"gorm.io/driver/sqlserver"
 	"gorm.io/gorm"
 )
@@ -21,5 +23,8 @@ func ConnectDatabase() {
 	if err != nil {
 		log.Fatal("Database connection failed: ", err)
 	}
+
+	database.AutoMigrate(&models.Organization{})
+
 	DB = database
 }
