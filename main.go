@@ -18,7 +18,11 @@ func main() {
 		orgRoutes.GET("/:id", controllers.GetOrganizationByID)
 		orgRoutes.PUT("/:id", controllers.UpdateOrganization)
 		orgRoutes.DELETE("/:id", controllers.DeleteOrganization)
-	}
 
+		orgRoutes.POST("/:id/members", controllers.AddMember)
+		orgRoutes.GET("/:id/members", controllers.GetOrganizationMembers)
+		orgRoutes.DELETE("/:id/members/:user_id", controllers.RemoveMember)
+		orgRoutes.PUT("/:id/members/:user_id", controllers.UpdateMemberRole)
+	}
 	r.Run(":8081")
 }
