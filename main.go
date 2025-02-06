@@ -19,10 +19,19 @@ func main() {
 		orgRoutes.PUT("/:id", controllers.UpdateOrganization)
 		orgRoutes.DELETE("/:id", controllers.DeleteOrganization)
 
-		orgRoutes.POST("/:id/members", controllers.AddMember)
-		orgRoutes.GET("/:id/members", controllers.GetOrganizationMembers)
-		orgRoutes.DELETE("/:id/members/:user_id", controllers.RemoveMember)
-		orgRoutes.PUT("/:id/members/:user_id", controllers.UpdateMemberRole)
+		orgRoutes.POST("/:id/organizationmembers", controllers.AddMemberToOrganization)
+		orgRoutes.GET("/:id/organizationmembers", controllers.GetOrganizationMembers)
+		orgRoutes.DELETE("/:id/organizationmembers/:user_id", controllers.RemoveMemberFromOrganization)
+		orgRoutes.PUT("/:id/organizationmembers/:user_id", controllers.UpdateMemberRole)
 	}
+	membRoutes := r.Group("/members")
+	{
+		membRoutes.POST("/", controllers.CreateMember)
+		membRoutes.GET("/", controllers.GetMembers)
+		membRoutes.GET("/:id", controllers.GetMemberByID)
+		membRoutes.PUT("/:id", controllers.UpdateMember)
+		membRoutes.DELETE("/:id", controllers.DeleteMember)
+	}
+
 	r.Run(":8081")
 }
