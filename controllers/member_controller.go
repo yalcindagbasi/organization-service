@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"fmt"
 	"net/http"
 	"organization-service/database"
 	"organization-service/models"
@@ -9,62 +8,70 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func AddMember(c *gin.Context) {
+func CreateMember(c *gin.Context) {
 	var member models.Member
 	if err := c.ShouldBindJSON(&member); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-
 	var existingMember models.Member
-	if err := database.DB.Where("organization_id = ? AND user_id = ?", member.OrganizationID, member.UserID).First(&existingMember).Error; err == nil {
-		c.JSON(http.StatusConflict, gin.H{"error": "User is already a member"})
+	if err := database.DB.Where("email = ?", member.Email).First(&existingMember).Error; err == nil {
+		c.JSON(http.StatusConflict, gin.H{"error": "Member already exists"})
 		return
 	}
 
-	database.DB.Create(&member)
-	c.JSON(http.StatusCreated, member)
+	if err := database.DB.Create(&member).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, member)
 }
 
-func GetOrganizationMembers(c *gin.Context) {
-	orgID := c.Param("id")
+func GetMembers(c *gin.Context) {
 	var members []models.Member
-	database.DB.Where("organization_id = ?", orgID).Find(&members)
+	database.DB.Find(&members)
 	c.JSON(http.StatusOK, members)
 }
-
-func RemoveMember(c *gin.Context) {
-	orgID := c.Param("id")
-	userID := c.Param("user_id")
-	fmt.Println("orgID: ", orgID)
-	fmt.Println("userID: ", userID)
+func GetMemberByID(c *gin.Context) {
+	id := c.Param("id")
 	var member models.Member
-	if err := database.DB.Where("organization_id = ? AND user_id = ?", orgID, userID).First(&member).Error; err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "User not found in organization"})
+	if err := database.DB.First(&member, id).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Member not found"})
 		return
 	}
-
-	database.DB.Delete(&member)
-	c.JSON(http.StatusOK, gin.H{"message": "User removed from organization"})
+	c.JSON(http.StatusOK, member)
 }
-
-func UpdateMemberRole(c *gin.Context) {
-	orgID := c.Param("id")
-	userID := c.Param("user_id")
-
+func UpdateMember(c *gin.Context) {
+	id := c.Param("id")
 	var member models.Member
-	if err := database.DB.Where("organization_id = ? AND user_id = ?", orgID, userID).First(&member).Error; err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "User not found in organization"})
+	if err := database.DB.First(&member, id).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Member not found"})
 		return
 	}
-	var updateData struct {
-		Role string `json:"role"`
-	}
-	if err := c.ShouldBindJSON(&updateData); err != nil {
+
+	if err := c.ShouldBindJSON(&member); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	member.Role = updateData.Role
-	database.DB.Save(&member)
+
+	if err := database.DB.Save(&member).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
 	c.JSON(http.StatusOK, member)
+}
+func DeleteMember(c *gin.Context) {
+	id := c.Param("id")
+	var member models.Member
+	if err := database.DB.First(&member, id).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Member not found"})
+		return
+	}
+
+	if err := database.DB.Delete(&member).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "Member deleted successfully"})
 }
