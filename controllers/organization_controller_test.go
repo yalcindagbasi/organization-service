@@ -3,7 +3,7 @@ package controllers
 import (
 	"bytes"
 	"encoding/json"
-	"log"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"organization-service/database"
@@ -12,22 +12,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
-	"gorm.io/driver/sqlite"
-	"gorm.io/gorm"
 )
-
-func setupTestDB() {
-	var err error
-	database.DB, err = gorm.Open(sqlite.Open("file::memory:?cache=shared"), &gorm.Config{})
-	if err != nil {
-		log.Fatal("Test veritabanına bağlanılamadı:", err)
-	}
-
-	err = database.DB.AutoMigrate(&models.Organization{})
-	if err != nil {
-		log.Fatal("Tablolar oluşturulurken hata:", err)
-	}
-}
 
 func setupRouter() *gin.Engine {
 	r := gin.Default()
@@ -44,7 +29,9 @@ func setupRouter() *gin.Engine {
 }
 
 func TestCreateOrganization(t *testing.T) {
-	setupTestDB()
+	database.ConnectTestDB()
+	defer database.TestDB.Exec("DELETE FROM organizations")
+
 	router := setupRouter()
 
 	org := models.Organization{Name: "Test Organizasyonu", Description: "Test Açıklaması"}
@@ -59,7 +46,8 @@ func TestCreateOrganization(t *testing.T) {
 }
 
 func TestGetOrganizations(t *testing.T) {
-	setupTestDB()
+	database.ConnectTestDB()
+	defer database.TestDB.Exec("DELETE FROM organizations")
 	router := setupRouter()
 
 	req, _ := http.NewRequest("GET", "/organizations/", nil)
@@ -70,13 +58,15 @@ func TestGetOrganizations(t *testing.T) {
 }
 
 func TestGetOrganizationByID(t *testing.T) {
-	setupTestDB()
+	database.ConnectTestDB()
+	defer database.TestDB.Exec("DELETE FROM organizations")
+
 	router := setupRouter()
 
 	org := models.Organization{Name: "Test Organizasyonu", Description: "Test Açıklaması"}
-	database.DB.Create(&org)
+	database.TestDB.Create(&org)
 
-	req, _ := http.NewRequest("GET", "/organizations/1", nil)
+	req, _ := http.NewRequest("GET", fmt.Sprintf("/organizations/%d", org.ID), nil)
 	resp := httptest.NewRecorder()
 	router.ServeHTTP(resp, req)
 
@@ -84,16 +74,17 @@ func TestGetOrganizationByID(t *testing.T) {
 }
 
 func TestUpdateOrganization(t *testing.T) {
-	setupTestDB()
+	database.ConnectTestDB()
+	defer database.TestDB.Exec("DELETE FROM organizations")
 	router := setupRouter()
 
 	org := models.Organization{Name: "Test Organizasyonu", Description: "Test Açıklaması"}
-	database.DB.Create(&org)
+	database.TestDB.Create(&org)
 
 	updateOrg := models.Organization{Name: "Updated Name", Description: "Updated Desc"}
 	jsonValue, _ := json.Marshal(updateOrg)
 
-	req, _ := http.NewRequest("PUT", "/organizations/1", bytes.NewBuffer(jsonValue))
+	req, _ := http.NewRequest("PUT", fmt.Sprintf("/organizations/%d", org.ID), bytes.NewBuffer(jsonValue))
 	req.Header.Set("Content-Type", "application/json")
 	resp := httptest.NewRecorder()
 	router.ServeHTTP(resp, req)
@@ -102,13 +93,15 @@ func TestUpdateOrganization(t *testing.T) {
 }
 
 func TestDeleteOrganization(t *testing.T) {
-	setupTestDB()
+	database.ConnectTestDB()
+	defer database.TestDB.Exec("DELETE FROM organizations")
+
 	router := setupRouter()
 
 	org := models.Organization{Name: "Test Organizasyonu", Description: "Test Açıklaması"}
 	database.DB.Create(&org)
 
-	req, _ := http.NewRequest("DELETE", "/organizations/1", nil)
+	req, _ := http.NewRequest("DELETE", fmt.Sprintf("/organizations/%d", org.ID), nil)
 	resp := httptest.NewRecorder()
 	router.ServeHTTP(resp, req)
 
