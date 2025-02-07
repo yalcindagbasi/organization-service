@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 	"net/http/httptest"
 	"organization-service/database"
@@ -12,7 +11,6 @@ import (
 	"testing"
 
 	"github.com/gin-gonic/gin"
-	"github.com/joho/godotenv"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -28,13 +26,10 @@ func setupMemberRouter() *gin.Engine {
 }
 
 func TestAddMember(t *testing.T) {
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatalf("Error loading .env file: %v", err)
-		return
-	}
 	database.ConnectTestDB()
+	defer database.TestDB.Exec("DELETE FROM organization_members")
 	defer database.TestDB.Exec("DELETE FROM members")
+	defer database.TestDB.Exec("DELETE FROM organizations")
 
 	r := setupMemberRouter()
 
@@ -50,11 +45,6 @@ func TestAddMember(t *testing.T) {
 }
 
 func TestGetMembers(t *testing.T) {
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatalf("Error loading .env file: %v", err)
-		return
-	}
 	database.ConnectTestDB()
 	defer database.TestDB.Exec("DELETE FROM members")
 
@@ -68,11 +58,6 @@ func TestGetMembers(t *testing.T) {
 }
 
 func TestGetMemberByID(t *testing.T) {
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatalf("Error loading .env file: %v", err)
-		return
-	}
 	database.ConnectTestDB()
 	defer database.TestDB.Exec("DELETE FROM members")
 
@@ -88,11 +73,6 @@ func TestGetMemberByID(t *testing.T) {
 }
 
 func TestUpdateMember(t *testing.T) {
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatalf("Error loading .env file: %v", err)
-		return
-	}
 	database.ConnectTestDB()
 	defer database.TestDB.Exec("DELETE FROM members")
 
@@ -113,11 +93,6 @@ func TestUpdateMember(t *testing.T) {
 }
 
 func TestDeleteMember(t *testing.T) {
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatalf("Error loading .env file: %v", err)
-		return
-	}
 	database.ConnectTestDB()
 	defer database.TestDB.Exec("DELETE FROM members")
 
