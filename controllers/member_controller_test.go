@@ -33,7 +33,7 @@ func TestAddMember(t *testing.T) {
 
 	r := setupMemberRouter()
 
-	member := models.Member{Name: "Test Member", Email: "test@example.com"}
+	member := models.Member{Name: "Test Member", Email: "test@example.com", Password: "123456"}
 	jsonValue, _ := json.Marshal(member)
 
 	req, _ := http.NewRequest("POST", "/members", bytes.NewBuffer(jsonValue))
@@ -76,12 +76,12 @@ func TestUpdateMember(t *testing.T) {
 	database.ConnectTestDB()
 	defer database.TestDB.Exec("DELETE FROM members")
 
-	member := models.Member{Name: "Test Member", Email: "test@example.com"}
+	member := models.Member{Name: "Test Member", Email: "test@example.com", Password: "123456"}
 	database.TestDB.Create(&member)
 
 	r := setupMemberRouter()
 
-	updatedMember := models.Member{Name: "Updated Member", Email: "updated@example.com"}
+	updatedMember := models.Member{Name: "Updated Member", Email: "updated@example.com", Password: "123456"}
 	jsonValue, _ := json.Marshal(updatedMember)
 
 	req, _ := http.NewRequest("PUT", "/members/"+fmt.Sprint(member.ID), bytes.NewBuffer(jsonValue))

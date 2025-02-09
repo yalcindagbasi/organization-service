@@ -11,18 +11,20 @@ import (
 
 func AddMemberToOrganization(c *gin.Context) {
 	var orgmember models.OrganizationMember
+
 	if err := c.ShouldBindJSON(&orgmember); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": CustomErrorMessage(err)})
 		return
 	}
 
 	var existingMember models.OrganizationMember
 	if err := database.DB.Where("organization_id = ? AND member_id = ?", orgmember.OrganizationID, orgmember.MemberID).First(&existingMember).Error; err == nil {
-		c.JSON(http.StatusConflict, gin.H{"error": "User is already a orgmember"})
+		c.JSON(http.StatusConflict, gin.H{"error": "User is already a member of the organization"})
 		return
 	}
 
 	database.DB.Create(&orgmember)
+
 	c.JSON(http.StatusCreated, orgmember)
 }
 
@@ -64,7 +66,7 @@ func UpdateMemberRole(c *gin.Context) {
 		Role string `json:"role"`
 	}
 	if err := c.ShouldBindJSON(&updateData); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": CustomErrorMessage(err)})
 		return
 	}
 	orgmember.Role = updateData.Role
