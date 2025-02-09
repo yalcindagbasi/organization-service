@@ -11,7 +11,7 @@ import (
 func CreateOrganization(c *gin.Context) {
 	var organization models.Organization
 	if err := c.ShouldBindJSON(&organization); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": CustomErrorMessage(err)})
 		return
 	}
 
@@ -43,7 +43,7 @@ func UpdateOrganization(c *gin.Context) {
 		return
 	}
 	if err := c.ShouldBindJSON(&organization); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": CustomErrorMessage(err)})
 		return
 	}
 	database.DB.Save(&organization)
