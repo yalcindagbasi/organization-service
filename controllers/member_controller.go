@@ -6,12 +6,13 @@ import (
 	"organization-service/models"
 
 	"github.com/gin-gonic/gin"
+	"github.com/go-playground/validator/v10"
 )
 
 func CreateMember(c *gin.Context) {
 	var member models.Member
 	if err := c.ShouldBindJSON(&member); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": CustomErrorMessage(err)})
 		return
 	}
 	var existingMember models.Member
@@ -51,7 +52,7 @@ func UpdateMember(c *gin.Context) {
 	}
 
 	if err := c.ShouldBindJSON(&member); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": CustomErrorMessage(err)})
 		return
 	}
 
@@ -74,4 +75,25 @@ func DeleteMember(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"message": "Member deleted successfully"})
+}
+
+func CustomErrorMessage(err error) string {
+	var errors []string
+	for _, e := range err.(validator.ValidationErrors) {
+		switch e.Tag() {
+		case "required":
+			errors = append(errors, e.Field()+" is required")
+		case "email":
+			errors = append(errors, e.Field()+" must be a valid email address")
+		case "min":
+			errors = append(errors, e.Field()+" must be at least "+e.Param()+" characters")
+		case "max":
+			errors = append(errors, e.Field()+" must be at most "+e.Param()+" characters")
+		case "gte":
+			errors = append(errors, e.Field()+" must be greater than or equal to "+e.Param())
+		case "lte":
+			errors = append(errors, e.Field()+" must be less than or equal to "+e.Param())
+		}
+	}
+	return errors[0]
 }

@@ -30,17 +30,21 @@ func TestAddMemberToOrganization(t *testing.T) {
 	defer database.TestDB.Exec("DELETE FROM members")
 	defer database.TestDB.Exec("DELETE FROM organizations")
 
-	// Gerekli kayıtları ekleyin
-	member := models.Member{Name: "Test Member", Email: "test@example.com"}
+	member := models.Member{Name: "Test Member", Email: "test@example.com", Password: "123456"}
 	database.TestDB.Create(&member)
 	org := models.Organization{Name: "Test Organization", Description: "Test Description"}
 	database.TestDB.Create(&org)
 
 	r := setupOrgMemberRouter()
 
-	orgMember := models.OrganizationMember{OrganizationID: org.ID, MemberID: member.ID, Role: "member"}
-	jsonValue, _ := json.Marshal(orgMember)
+	orgMember := models.OrganizationMember{
+		OrganizationID: org.ID,
+		MemberID:       member.ID,
+		Role:           "member",
+	}
 
+	jsonValue, _ := json.Marshal(orgMember)
+	fmt.Println(string(jsonValue))
 	req, _ := http.NewRequest("POST", fmt.Sprintf("/organizations/%d/members", org.ID), bytes.NewBuffer(jsonValue))
 	req.Header.Set("Content-Type", "application/json")
 	w := httptest.NewRecorder()
@@ -56,7 +60,7 @@ func TestGetOrganizationMembers(t *testing.T) {
 	defer database.TestDB.Exec("DELETE FROM organizations")
 
 	// Gerekli kayıtları ekleyin
-	member := models.Member{Name: "Test Member", Email: "test@example.com"}
+	member := models.Member{Name: "Test Member", Email: "test@example.com", Password: "123456"}
 	database.TestDB.Create(&member)
 	org := models.Organization{Name: "Test Organization", Description: "Test Description"}
 	database.TestDB.Create(&org)
@@ -79,7 +83,7 @@ func TestRemoveMemberFromOrganization(t *testing.T) {
 	defer database.TestDB.Exec("DELETE FROM organizations")
 
 	// Gerekli kayıtları ekleyin
-	member := models.Member{Name: "Test Member", Email: "test@example.com"}
+	member := models.Member{Name: "Test Member", Email: "test@example.com", Password: "123456"}
 	database.TestDB.Create(&member)
 	org := models.Organization{Name: "Test Organization", Description: "Test Description"}
 	database.TestDB.Create(&org)
@@ -102,7 +106,7 @@ func TestUpdateMemberRole(t *testing.T) {
 	defer database.TestDB.Exec("DELETE FROM organizations")
 
 	// Gerekli kayıtları ekleyin
-	member := models.Member{Name: "Test Member", Email: "test@example.com"}
+	member := models.Member{Name: "Test Member", Email: "test@example.com", Password: "123456"}
 	database.TestDB.Create(&member)
 	org := models.Organization{Name: "Test Organization", Description: "Test Description"}
 	database.TestDB.Create(&org)
